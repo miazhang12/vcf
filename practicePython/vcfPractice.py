@@ -1,14 +1,16 @@
 import vcf
 import json
 import string
+import argparse
 
 #print out the records in vcf file
 def print_vcf(filename):
-	vcf_reader = vcf.Reader(open(filename)) #open file
-	for record in vcf_reader: #loops through all the records in vcf
-		for i in record.ALT: 
-			if i == 'T' and record.REF == 'C': #filter out the records with T ALT and C REF
-				print record #print out the record if meet the criteria
+	with open(filename, 'r') as fi: #open file
+		vcf_reader = vcf.Reader(fi)
+		for record in vcf_reader: #loops through all the records in vcf
+			for i in record.ALT: 
+				if i == 'T' and record.REF == 'C': #filter out the records with T ALT and C REF
+					print(record) #print out the record if meet the criteria
 
 #transform the vcf file into JSON format
 def vcfToJSON(filename):
@@ -33,9 +35,12 @@ def vcfToJSON(filename):
 		json.dump(content, fout, indent=1)
 		
 def main():
-	filename = raw_input("Enter Filename: ") #user input for the filename
-	print_vcf(filename)	#call print_vcf function
-	vcfToJSON(filename)	#call vcfToJSON function
+	parser = argparse.ArgumentParser()
+	parser.add_argument('filename', help='filename to transform into JSON format')
+	args = parser.parse_args()
+	
+	print_vcf(args.filename)	#call print_vcf function
+	vcfToJSON(args.filename)	#call vcfToJSON function
 
 if __name__ == "__main__":
 	main()
