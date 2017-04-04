@@ -3,42 +3,39 @@ import json
 import string
 import argparse
 
-#print out the records in vcf file
-def print_vcf_CtoT(filename):
-	with open(filename, 'r') as fi: #open file
-		vcf_reader = vcf.Reader(fi)
-		for record in vcf_reader: #loops through all the records in vcf
-			for i in record.ALT: 
-				if i == 'T' and record.REF == 'C': #filter out the records with T ALT and C REF
-					print(record) #print out the record if meet the criteria
-
 #transform the vcf file into JSON format by one line
 def vcfToJSON_line(record):
-		recordinJSON = ''
-		if len(record.ALT) == 1: #change format of record.ALT depending on the length of the content
-			alt = str(record.ALT[0])
-		else:
-			alt = ''.join(str(record.ALT))
-			alt = alt.replace('[', '')
-			alt = alt.replace(']', '')				
-		recordinJSON = recordinJSON + ('{"CHROM":"'+ record.CHROM + '", "POS":' + str(record.POS) + ', "REF":"' + record.REF + '", "ALT":"' + alt + '" },') #transform the vcf data into json format
-		recordinJSON = recordinJSON[:-1]
-		return recordinJSON
-		
+	recordinJSON = ''
+	if len(record.ALT) == 1: #change format of record.ALT depending on the length of the content
+		alt = str(record.ALT[0])
+	else:
+		alt = ''.join(str(record.ALT))
+		alt = alt.replace('[', '')
+		alt = alt.replace(']', '')				
+	recordinJSON = recordinJSON + ('{"CHROM":"'+ record.CHROM + '", "POS":' + str(record.POS) + ', "REF":"' + record.REF + '", "ALT":"' + alt + '" }') #transform the vcf data into json format
+	return recordinJSON
+
 def allvcfToJSON(filename):
 	with open(filename, 'r') as fi: #open file
 		vcf_reader = vcf.Reader(fi)
 		first = True
+		allinJSON = '';
 		for record in vcf_reader:
+			content = vcfToJSON_line(record)
 			if first:
-				print('['),
-				print(vcfToJSON_line(record)),
+				allinJSON += '['
+				allinJSON += content
+				#print('['),
+				print(content)
+				print(json.dumps(content, indent=1))
 				first = False
 			else:
-				print(',')
-				print(vcfToJSON_line(record))
-		print(']')
-		#json.dumps(json.load(fout), fout, indent=4)
+				allinJSON += ','
+				allinJSON += content
+				#print(',')
+				#print(vcfToJSON_line(record))
+		allinJSON += ']'
+		return json.dumps(allinJSON, sort_keys = True, indent=4)
 
 #transform the vcf file into JSON format
 #does transformations all at once, and writes it to output file rather than printing
@@ -61,7 +58,7 @@ def vcfToJSON(filename):
 			original.write(recordinJSON)
 	with open("vcfToJSON.txt", "r") as fin:
 		content = json.load(fin)
-	with open("toJSON.txt", "w") as fout:
+	with open("output.txt", "w") as fout:
 		json.dump(content, fout, indent=1)
 
 def main():
@@ -73,7 +70,6 @@ def main():
 	
 	allvcfToJSON(args.filename)
 	#vcfToJSON_line(args.filename)
-	#print_vcf_CtoT(args.filename)	#call print_vcf function
 	#vcfToJSON(args.filename)	#call vcfToJSON function
 
 if __name__ == "__main__":
